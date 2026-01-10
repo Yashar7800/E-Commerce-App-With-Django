@@ -1,0 +1,14 @@
+<html>
+    <body>
+        {% if title %}
+        <h1>Welcome to {{ title }}</h1>
+        {% else %}
+        <h1>Page Not Found!</h1>
+        {% endif %}
+        <ul>
+            {% for customer in customers %}
+            <li>{{ customer.Full_Name }}  {{ customer.payment_status }}</li>
+            {% endfor %}
+        </ul>
+    </body>
+</html>

@@ -1,0 +1,14 @@
+<html>
+    <body>
+        {% if title %}
+        <h1>This Page shows the {{title}}</h1>
+        {% else %}
+        <h1>Page Not Found!</h1>
+        {% endif %}
+        <ul>
+            {% for order in avg_orders  %}
+            <li>{{ order.order__payment_status }} - ${{ order.AVG_PaymentStatus|floatformat:2 }}</li>
+            {% endfor %}
+        </ul>
+    </body>
+</html>

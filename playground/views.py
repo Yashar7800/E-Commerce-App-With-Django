@@ -10,11 +10,19 @@ from store.models import *
 # Every model in Django has an attribute called objects and this returns a manager object which is an interface to the database. The methods from the object return a query set 
 
 from django.core.exceptions import ObjectDoesNotExist # we add this library of django couldnt find the proper result, like .get(pk = 0) --> since we dont have pk = 0
+from django.db.models import Q # we add this class for writing queries
+from django.db.models import F # Using this class we can reference a particular field
+from django.db.models import Avg, Value
+from django.db.models.functions import Coalesce
+
+
+
 
 
 def say_hello(request):
     
-    queryset = Product.objects.filter(title__istartswith = 'wine').filter(last_update__year = 2020)
+    queryset = Product.objects.filter(Q(title__istartswith = 'wine') | ~Q(last_update__year = 2020)).order_by('unit_price', '-title').reverse()[3:20].values('title','unit_price','collection__title')
+    # queryset = Product.objects.filter(inventory = F('collection_id'))
     for product in queryset:
         print(product)
 
@@ -37,3 +45,19 @@ def say_hello(request):
 
 # we need to map this view to a url, so when we get a request at that url the function is called.
 
+def random_query(request):
+    queryset= Customer.objects.raw("SELECT C.id,concat_ws(' ', first_name, last_name) as Full_Name, payment_status FROM storefront.store_customers as C inner join storefront.store_order as O on C.id = O.customer_id where payment_status = 'C';")
+
+    return render(request, 'customer.html', {'title': 'Customers Query Page','customers':list(queryset)})
+
+def average_payment_status(request):
+
+    queryset = OrderItem.objects.annotate(
+        total_price=F('quantity') * F('unit_price')  # Calculate quantity * unit_price
+    ).values(
+        'order__payment_status'  # Group by payment_status from related Order
+    ).annotate(
+        AVG_PaymentStatus=Avg('total_price')  # Calculate average for each group
+    ).order_by('AVG_PaymentStatus')  # Order by the calculated average
+
+    return render(request, 'order.html',{'title': 'Average Order Price for payment Status','avg_orders': list(queryset)})
